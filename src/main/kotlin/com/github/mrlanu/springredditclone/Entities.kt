@@ -10,7 +10,7 @@ class User (
     val password: String,
     val email: String,
     val created: LocalDateTime,
-    val enabled: Boolean,
+    var enabled: Boolean,
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) var userId: Long? = null)
 
 @Entity

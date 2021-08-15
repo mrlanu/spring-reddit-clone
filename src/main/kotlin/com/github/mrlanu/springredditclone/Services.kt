@@ -1,11 +1,15 @@
 package com.github.mrlanu.springredditclone
 
+import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.HttpStatus
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.mail.javamail.MimeMessagePreparator
+import org.springframework.scheduling.annotation.Async
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.server.ResponseStatusException
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 import java.time.LocalDateTime
@@ -37,10 +41,27 @@ class AuthService (val passwordEncoder : PasswordEncoder,
         verificationTokenRepository.save(verificationToken)
         return token
     }
+
+    fun verifyAccount(token: String): String? {
+        val t = verificationTokenRepository.findByToken(token) ?: return null
+        activateAccount(t)
+        return "isActivated"
+    }
+
+    @Transactional
+    fun activateAccount(token: VerificationToken){
+        val user = userRepository.findByIdOrNull(token.user.userId)
+        if (user != null) {
+            user.enabled = true
+            userRepository.save(user)
+        }else println("User not found")
+    }
 }
 
 @Service
 class MailService (val mailContentBuilder: MailContentBuilder, val mailSender: JavaMailSender){
+
+    @Async
     fun sendEmail(notificationEmail: NotificationEmail){
         val messagePreparator = MimeMessagePreparator { mimeMessage ->
             val messageHelper = MimeMessageHelper(mimeMessage)
