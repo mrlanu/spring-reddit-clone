@@ -21,4 +21,8 @@ class AuthController(val authService: AuthService) {
 
         return ResponseEntity("Account verified successfully.", HttpStatus.OK)
     }
+
+    @PostMapping("/login")
+    fun login(@RequestBody loginRequest: LoginRequest): AuthenticationResponse = authService.login(loginRequest)
+
 }

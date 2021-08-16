@@ -6,7 +6,9 @@ interface PostRepository : JpaRepository<Post, Long>
 
 interface SubredditRepository : JpaRepository<Subreddit, Long>
 
-interface UserRepository : JpaRepository<User, Long>
+interface UserRepository : JpaRepository<User, Long>{
+    fun findByUsername(username: String): User?
+}
 
 interface VoteRepository : JpaRepository<Vote, Long>
 

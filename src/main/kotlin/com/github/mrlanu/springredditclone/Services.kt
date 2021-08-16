@@ -6,6 +6,9 @@ import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.mail.javamail.MimeMessagePreparator
 import org.springframework.scheduling.annotation.Async
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -19,7 +22,9 @@ import java.util.*
 class AuthService (val passwordEncoder : PasswordEncoder,
                    val userRepository: UserRepository,
                    val verificationTokenRepository: VerificationTokenRepository,
-                   val mailService: MailService){
+                   val mailService: MailService,
+                   val authenticationManager: AuthenticationManager,
+                   val jwtProvider: JwtProvider){
 
     @Transactional
     fun signup(regReq: RegisterRequest){
@@ -43,7 +48,8 @@ class AuthService (val passwordEncoder : PasswordEncoder,
     }
 
     fun verifyAccount(token: String): String? {
-        val t = verificationTokenRepository.findByToken(token) ?: return null
+        val t = verificationTokenRepository.findByToken(token) ?:
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "This token does not exist")
         activateAccount(t)
         return "isActivated"
     }
@@ -51,10 +57,17 @@ class AuthService (val passwordEncoder : PasswordEncoder,
     @Transactional
     fun activateAccount(token: VerificationToken){
         val user = userRepository.findByIdOrNull(token.user.userId)
-        if (user != null) {
-            user.enabled = true
-            userRepository.save(user)
-        }else println("User not found")
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "This user does not exist")
+        user.enabled = true
+        userRepository.save(user)
+    }
+
+    fun login(loginRequest: LoginRequest): AuthenticationResponse {
+        val auth = authenticationManager
+            .authenticate(UsernamePasswordAuthenticationToken(loginRequest.username, loginRequest.password))
+        SecurityContextHolder.getContext().authentication = auth
+        val token = jwtProvider.generateToken(auth)
+        return AuthenticationResponse(token, loginRequest.username)
     }
 }
 
