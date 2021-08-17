@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE
 import java.util.*
 import javax.servlet.FilterChain
 import javax.servlet.http.HttpServletRequest
@@ -77,9 +78,13 @@ class AuthenticationFilter(val userService: UserService, val env: Environment, a
             .withIssuer(request.requestURL.toString())
             .sign(algorithm)
 
-        response.setHeader("access_token", accessToken)
-        response.setHeader("refresh_token", refreshToken)
+        /*response.setHeader("access_token", accessToken)
+        response.setHeader("refresh_token", refreshToken)*/
 
+        val tokens = TokensResponse(accessToken, refreshToken)
+        response.contentType = APPLICATION_JSON_VALUE
+        ObjectMapper().registerModule(KotlinModule()).writeValue(response.outputStream, tokens)
 
     }
 }
+

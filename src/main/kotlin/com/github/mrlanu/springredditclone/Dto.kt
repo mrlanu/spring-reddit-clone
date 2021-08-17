@@ -9,3 +9,8 @@ class LoginRequest (
     var email: String,
     var password: String)
 
+class TokensResponse(
+    val accessToken: String,
+    val refreshToken: String
+)
+
