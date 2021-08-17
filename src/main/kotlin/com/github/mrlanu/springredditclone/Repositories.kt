@@ -7,8 +7,10 @@ interface PostRepository : JpaRepository<Post, Long>
 interface SubredditRepository : JpaRepository<Subreddit, Long>
 
 interface UserRepository : JpaRepository<User, Long>{
-    fun findByUsername(username: String): User?
+    fun findByEmail(email: String): User?
 }
+
+interface RoleRepository : JpaRepository<Role, Long>
 
 interface VoteRepository : JpaRepository<Vote, Long>
 

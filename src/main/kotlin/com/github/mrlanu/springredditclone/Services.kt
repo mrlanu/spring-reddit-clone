@@ -6,9 +6,9 @@ import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.mail.javamail.MimeMessagePreparator
 import org.springframework.scheduling.annotation.Async
-import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.authority.AuthorityUtils
+import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -19,20 +19,42 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Service
-class AuthService (val passwordEncoder : PasswordEncoder,
+class UserService (val passwordEncoder : PasswordEncoder,
                    val userRepository: UserRepository,
+                   val roleRepository: RoleRepository,
                    val verificationTokenRepository: VerificationTokenRepository,
-                   val mailService: MailService,
-                   val authenticationManager: AuthenticationManager,
-                   val jwtProvider: JwtProvider){
+                   val mailService: MailService): UserDetailsService {
+
+    override fun loadUserByUsername(email: String): UserDetails? =
+        userRepository.findByEmail(email)?.let { user ->
+            org.springframework.security.core.userdetails.User(
+                user.email,
+                user.password,
+                user.enabled,
+                user.enabled,
+                user.enabled,
+                user.enabled,
+                AuthorityUtils.createAuthorityList(
+                    *user.roles.map { r -> "ROLE_${r.roleName.uppercase()}" }.toTypedArray()
+                )
+            )
+        }
+
 
     @Transactional
     fun signup(regReq: RegisterRequest){
-        val user = User(regReq.username,
-            passwordEncoder.encode(regReq.password),
-            regReq.email, LocalDateTime.now(), false)
+        val user = User(
+            username = regReq.username,
+            password = passwordEncoder.encode(regReq.password),
+            email = regReq.email,
+            created = LocalDateTime.now(),
+            enabled = false)
+
+        val roleUser = roleRepository.save(Role("user"))
+        user.roles?.add(roleUser)
         userRepository.save(user)
         val token = generateVerificationToken(user)
+
         mailService.sendEmail(
             NotificationEmail("Please activate your account", user.email,
                 "Thank you for signing up to Spring Reddit, " +
@@ -60,14 +82,6 @@ class AuthService (val passwordEncoder : PasswordEncoder,
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "This user does not exist")
         user.enabled = true
         userRepository.save(user)
-    }
-
-    fun login(loginRequest: LoginRequest): AuthenticationResponse {
-        val auth = authenticationManager
-            .authenticate(UsernamePasswordAuthenticationToken(loginRequest.username, loginRequest.password))
-        SecurityContextHolder.getContext().authentication = auth
-        val token = jwtProvider.generateToken(auth)
-        return AuthenticationResponse(token, loginRequest.username)
     }
 }
 

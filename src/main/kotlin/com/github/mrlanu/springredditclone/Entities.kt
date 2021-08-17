@@ -1,17 +1,28 @@
 package com.github.mrlanu.springredditclone
 
 import java.time.LocalDateTime
+import java.util.*
 import javax.persistence.*
 
 
 @Entity
-class User (
+class User(
     val username: String,
-    val password: String,
     val email: String,
+    val password: String,
     val created: LocalDateTime,
     var enabled: Boolean,
+    @ManyToMany(fetch = FetchType.EAGER)
+    var roles: MutableList<Role> = mutableListOf(),
+    val publicId: String? = UUID.randomUUID().toString(),
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) var userId: Long? = null)
+
+
+@Entity
+class Role (
+    val roleName: String,
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) var roleId: Long? = null)
+
 
 @Entity
 class Post (
