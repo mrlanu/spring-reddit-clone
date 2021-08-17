@@ -2,10 +2,6 @@ package com.github.mrlanu.springredditclone
 
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
-import org.springframework.mail.javamail.JavaMailSender
-import org.springframework.mail.javamail.MimeMessageHelper
-import org.springframework.mail.javamail.MimeMessagePreparator
-import org.springframework.scheduling.annotation.Async
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
@@ -13,8 +9,6 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
-import org.thymeleaf.TemplateEngine
-import org.thymeleaf.context.Context
 import java.time.LocalDateTime
 import java.util.*
 

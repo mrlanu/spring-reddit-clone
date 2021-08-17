@@ -1,10 +1,9 @@
+package com.github.mrlanu.springredditclone
+
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.github.mrlanu.springredditclone.LoginRequest
-import com.github.mrlanu.springredditclone.TokensResponse
-import com.github.mrlanu.springredditclone.UserService
 import org.springframework.core.env.Environment
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken

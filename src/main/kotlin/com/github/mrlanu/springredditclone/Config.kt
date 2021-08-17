@@ -1,6 +1,5 @@
 package com.github.mrlanu.springredditclone
 
-import AuthenticationFilter
 import org.springframework.core.env.Environment
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
