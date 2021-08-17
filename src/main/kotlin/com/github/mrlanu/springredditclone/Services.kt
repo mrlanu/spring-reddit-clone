@@ -51,7 +51,7 @@ class UserService (val passwordEncoder : PasswordEncoder,
             enabled = false)
 
         val roleUser = roleRepository.save(Role("user"))
-        user.roles?.add(roleUser)
+        user.roles.add(roleUser)
         userRepository.save(user)
         val token = generateVerificationToken(user)
 
@@ -82,32 +82,5 @@ class UserService (val passwordEncoder : PasswordEncoder,
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "This user does not exist")
         user.enabled = true
         userRepository.save(user)
-    }
-}
-
-@Service
-class MailService (val mailContentBuilder: MailContentBuilder, val mailSender: JavaMailSender){
-
-    @Async
-    fun sendEmail(notificationEmail: NotificationEmail){
-        val messagePreparator = MimeMessagePreparator { mimeMessage ->
-            val messageHelper = MimeMessageHelper(mimeMessage)
-            messageHelper.setFrom("mrlanu@yahoo.com")
-            messageHelper.setTo(notificationEmail.recipient)
-            messageHelper.setSubject(notificationEmail.subject)
-            messageHelper.setText(mailContentBuilder.build(notificationEmail.body))
-        }
-
-        mailSender.send(messagePreparator)
-    }
-
-}
-
-@Service
-class MailContentBuilder(val templateEngine: TemplateEngine) {
-    fun build(message: String): String {
-        val context = Context()
-        context.setVariable("message", message)
-        return templateEngine.process("mailTemplate", context)
     }
 }
