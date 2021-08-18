@@ -1,23 +1,24 @@
 package com.github.mrlanu.springredditclone
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import org.springframework.core.env.Environment
+import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.util.MimeTypeUtils
-import java.util.*
+import org.springframework.web.filter.OncePerRequestFilter
 import javax.servlet.FilterChain
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import kotlin.collections.ArrayList
 
-class AuthenticationFilter(val userService: UserService, val env: Environment, authM: AuthenticationManager) :
+class CustomAuthenticationFilter(authM: AuthenticationManager) :
     UsernamePasswordAuthenticationFilter(authM) {
+
     override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication {
         val mapper = ObjectMapper().registerModule(KotlinModule())
         val loginReq = mapper.readValue(request.inputStream,
@@ -27,30 +28,33 @@ class AuthenticationFilter(val userService: UserService, val env: Environment, a
     }
 
     override fun successfulAuthentication(request: HttpServletRequest, response: HttpServletResponse,
-                                          chain: FilterChain?, authResult: Authentication
-    ) {
+                                          chain: FilterChain?, authResult: Authentication) {
         val user = authResult.principal as User
-
-        val algorithm = Algorithm.HMAC256("secret".toByteArray())
-        val accessToken = JWT.create()
-            .withSubject(user.username)
-            .withExpiresAt(Date(System.currentTimeMillis() + 10 * 60 *1000))
-            .withIssuer(request.requestURL.toString())
-            .withClaim("roles", user.authorities.map { grantedAuthority -> grantedAuthority.authority }.toMutableList())
-            .sign(algorithm)
-
-        val refreshToken = JWT.create()
-            .withSubject(user.username)
-            .withExpiresAt(Date(System.currentTimeMillis() + 30 * 60 *1000))
-            .withIssuer(request.requestURL.toString())
-            .sign(algorithm)
-
-        /*response.setHeader("access_token", accessToken)
-        response.setHeader("refresh_token", refreshToken)*/
-
-        val tokens = TokensResponse(accessToken, refreshToken)
+        val tokens = Utils.generateTokens(user)
         response.contentType = MimeTypeUtils.APPLICATION_JSON_VALUE
         ObjectMapper().registerModule(KotlinModule()).writeValue(response.outputStream, tokens)
 
     }
+}
+
+class CustomAuthorizationFilter: OncePerRequestFilter(){
+    override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
+        if(request.requestURL.equals("/api/auth/login")) {
+            filterChain.doFilter(request, response)
+        } else {
+            val authorizationHeader: String? = request.getHeader(AUTHORIZATION)
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){
+                try {
+                    val unpackedToken = Utils.unpackToken(authorizationHeader)
+                    val authToken = UsernamePasswordAuthenticationToken(unpackedToken.username, null, unpackedToken.authorities)
+                    SecurityContextHolder.getContext().authentication = authToken
+                    filterChain.doFilter(request, response)
+                }catch (exception: Exception){
+                    exception.message?.let { Utils.responseError(response, it) }
+                }
+                }else{
+                    filterChain.doFilter(request, response)
+                }
+            }
+        }
 }

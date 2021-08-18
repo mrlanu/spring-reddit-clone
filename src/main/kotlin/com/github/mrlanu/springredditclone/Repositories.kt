@@ -10,7 +10,9 @@ interface UserRepository : JpaRepository<User, Long>{
     fun findByEmail(email: String): User?
 }
 
-interface RoleRepository : JpaRepository<Role, Long>
+interface RoleRepository : JpaRepository<Role, Long>{
+    fun findByRoleName(name: String): Role?
+}
 
 interface VoteRepository : JpaRepository<Vote, Long>
 

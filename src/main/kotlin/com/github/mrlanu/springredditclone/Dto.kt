@@ -14,3 +14,7 @@ class TokensResponse(
     val refreshToken: String
 )
 
+class ErrorResponse(
+    val message: String
+)
+

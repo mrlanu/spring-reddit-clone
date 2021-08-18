@@ -3,23 +3,34 @@ package com.github.mrlanu.springredditclone
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api")
 class AuthController(val userService: UserService) {
 
-    @PostMapping("/signup")
+    @PostMapping("/auth/signup")
     fun signup(@RequestBody regRequest : RegisterRequest): ResponseEntity<String> {
         userService.signup(regRequest)
         return ResponseEntity("User registration successful.", HttpStatus.OK)
     }
 
-    @GetMapping("/verify/{token}")
+    @GetMapping("/auth/verify/{token}")
     fun verifyAccount(@PathVariable token: String): ResponseEntity<String>{
         userService.verifyAccount(token) ?:
             return ResponseEntity("This token does not exist", HttpStatus.NOT_EXTENDED)
 
         return ResponseEntity("Account verified successfully.", HttpStatus.OK)
     }
+
+    @GetMapping("/users")
+    fun getAllUsers(): ResponseEntity<List<User>> {
+        val users = userService.findAllUsers()
+        return ResponseEntity(users, HttpStatus.OK)
+    }
+
+    @GetMapping("/auth/refresh")
+    fun refreshToken(request: HttpServletRequest, response: HttpServletResponse) = userService.refreshToken(request, response)
 
 }
