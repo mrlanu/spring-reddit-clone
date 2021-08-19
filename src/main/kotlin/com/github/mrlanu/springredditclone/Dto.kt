@@ -24,3 +24,10 @@ class UserResponseDTO(
     val email: String
 )
 
+class SubredditDto(
+    var id: Long? = null,
+    val name: String,
+    val description: String,
+    val numberOfPosts: Int? = 0
+)
+

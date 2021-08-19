@@ -39,9 +39,9 @@ class Post (
 class Subreddit (
     var name: String,
     var description: String,
-    @OneToMany var posts: List<Post>,
-    var createdDate: LocalDateTime,
-    @ManyToOne var user: User,
+    @OneToMany var posts: List<Post>? = mutableListOf(),
+    var createdDate: LocalDateTime? = LocalDateTime.now(),
+    @ManyToOne var user: User? = null,
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) var subredditId: Long? = null)
 
 @Entity

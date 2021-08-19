@@ -25,7 +25,7 @@ class UserService (val passwordEncoder : PasswordEncoder,
                    val verificationTokenRepository: VerificationTokenRepository,
                    val mailService: MailService): UserDetailsService {
 
-    fun findAllUsers() = userRepository.findAll()
+    fun findAllUsers() = userRepository.findAll().map { user -> user.toUserDto() }
 
     override fun loadUserByUsername(email: String): UserDetails? =
         userRepository.findByEmail(email)?.let { user ->
@@ -103,5 +103,24 @@ class UserService (val passwordEncoder : PasswordEncoder,
         userRepository.save(user)
     }
 
-    fun getUserById(userId: String): User? = userRepository.getUserByPublicId(userId)
+    fun getUserById(userId: String): UserResponseDTO {
+        val result: User = userRepository.getUserByPublicId(userId)?:
+                throw ResourceNotFoundException("User with id: $userId has not been founded")
+        return result.toUserDto()
+    }
+}
+
+@Service
+class SubredditService(val subredditRepository: SubredditRepository){
+    fun createSubreddit(subredditDto: SubredditDto): SubredditDto {
+        val newSubreddit = subredditDto.toSubreddit()
+
+        val savedSubreddit = subredditRepository.save(newSubreddit)
+        return savedSubreddit.toSubredditDto()
+    }
+
+    fun getAll(): List<SubredditDto> {
+        val subredditsList = subredditRepository.findAll()
+        return subredditsList.map { s -> s.toSubredditDto() }
+    }
 }

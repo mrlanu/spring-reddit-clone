@@ -25,26 +25,35 @@ class AuthController(val userService: UserService) {
     }
 
     @GetMapping("/users")
-    fun getAllUsers(): ResponseEntity<List<User>> {
+    fun getAllUsers(): ResponseEntity<List<UserResponseDTO>> {
         val users = userService.findAllUsers()
         return ResponseEntity(users, HttpStatus.OK)
     }
 
     @GetMapping("/users/{userId}")
     fun getUserById(@PathVariable userId: String): ResponseEntity<UserResponseDTO>{
-
-        val user: User = userService.getUserById(userId)?:
-        throw ResourceNotFoundException("User with id: $userId has not been founded")
-
-        val responseDTO = UserResponseDTO(
-            userId = user.publicId,
-            username = user.username,
-            email = user.email)
-
-        return ResponseEntity<UserResponseDTO>(responseDTO, HttpStatus.OK)
+        val user = userService.getUserById(userId)
+        return ResponseEntity<UserResponseDTO>(user, HttpStatus.OK)
     }
 
     @GetMapping("/auth/refresh")
     fun refreshToken(request: HttpServletRequest, response: HttpServletResponse) = userService.refreshToken(request, response)
 
+}
+
+@RestController
+@RequestMapping("/api/subreddits")
+class SubredditsController(val subredditService: SubredditService){
+
+    @PostMapping
+    fun createSubreddit(@RequestBody subreddit: SubredditDto): ResponseEntity<SubredditDto>{
+        val result = subredditService.createSubreddit(subreddit)
+        return ResponseEntity(result, HttpStatus.CREATED)
+    }
+
+    @GetMapping
+    fun getAllSubreddits(): ResponseEntity<List<SubredditDto>> {
+      val result = subredditService.getAll()
+      return ResponseEntity(result, HttpStatus.OK)
+    }
 }
