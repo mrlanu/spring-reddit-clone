@@ -9,7 +9,8 @@ fun User.toUserDto() = UserResponseDTO(
 fun Subreddit.toSubredditDto() = SubredditDto(
     id = subredditId,
     name = name,
-    description = description
+    description = description,
+    numberOfPosts = posts.size
 )
 
 fun SubredditDto.toSubreddit() = Subreddit(

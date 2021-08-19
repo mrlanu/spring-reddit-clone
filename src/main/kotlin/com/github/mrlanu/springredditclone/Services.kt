@@ -114,7 +114,6 @@ class UserService (val passwordEncoder : PasswordEncoder,
 class SubredditService(val subredditRepository: SubredditRepository){
     fun createSubreddit(subredditDto: SubredditDto): SubredditDto {
         val newSubreddit = subredditDto.toSubreddit()
-
         val savedSubreddit = subredditRepository.save(newSubreddit)
         return savedSubreddit.toSubredditDto()
     }
@@ -122,5 +121,11 @@ class SubredditService(val subredditRepository: SubredditRepository){
     fun getAll(): List<SubredditDto> {
         val subredditsList = subredditRepository.findAll()
         return subredditsList.map { s -> s.toSubredditDto() }
+    }
+
+    fun getById(id: Long): SubredditDto {
+        val result = subredditRepository.findByIdOrNull(id) ?:
+            throw ResourceNotFoundException("Subreddit with id: $id has not been founded")
+        return result.toSubredditDto()
     }
 }
