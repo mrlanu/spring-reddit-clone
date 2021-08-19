@@ -31,3 +31,25 @@ class SubredditDto(
     val numberOfPosts: Int? = 0
 )
 
+class PostRequest(
+    val postId: Long,
+    val subredditName: String,
+    val postName: String,
+    val url: String,
+    val description: String
+)
+
+class PostResponse(
+    val id: Long,
+    val postName: String,
+    val url: String,
+    val description: String,
+    val username: String,
+    val subredditName: String,
+    val voteCount: Int,
+    val commentCount: Int,
+    val duration: String,
+    val upVote: Boolean,
+    val downVote: Boolean
+)
+

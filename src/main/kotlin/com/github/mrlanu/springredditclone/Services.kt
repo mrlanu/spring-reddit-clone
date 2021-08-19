@@ -6,6 +6,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.authority.AuthorityUtils
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.util.MimeTypeUtils
 import org.springframework.web.server.ResponseStatusException
+import java.security.Principal
 import java.time.LocalDateTime
 import java.util.*
 import javax.servlet.http.HttpServletRequest
@@ -42,6 +44,10 @@ class UserService (val passwordEncoder : PasswordEncoder,
             )
         }
 
+    fun getCurrentUser(): User{
+        val principal = SecurityContextHolder.getContext().authentication.principal as String
+        return userRepository.findByEmail(principal) ?: throw RuntimeException("Error")
+    }
 
     @Transactional
     fun signup(regReq: RegisterRequest){
@@ -127,5 +133,27 @@ class SubredditService(val subredditRepository: SubredditRepository){
         val result = subredditRepository.findByIdOrNull(id) ?:
             throw ResourceNotFoundException("Subreddit with id: $id has not been founded")
         return result.toSubredditDto()
+    }
+}
+
+@Service
+class PostService(val postRepository: PostRepository,
+                  val subredditRepository: SubredditRepository,
+                  val authService: UserService){
+
+    fun createPost(postRequest: PostRequest): PostResponse{
+        val user = authService.getCurrentUser()
+        val subreddit = subredditRepository.findByName(postRequest.subredditName)?:
+            throw ResourceNotFoundException("Subreddit not found")
+        val result = postRepository.save(postRequest.toPost(user, subreddit))
+        return result.toPostResponse()
+    }
+
+    fun getAllPosts(): List<PostResponse> = postRepository.findAll().map { post -> post.toPostResponse() }
+
+    fun getAllPostsBySubreddit(subredditId: Long): List<PostResponse> {
+        val subreddit = subredditRepository.findByIdOrNull(subredditId) ?:
+            throw ResourceNotFoundException("Subreddit not found")
+        return postRepository.getAllBySubreddit(subreddit)?.map { post -> post.toPostResponse() } ?: listOf()
     }
 }

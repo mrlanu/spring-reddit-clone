@@ -63,3 +63,26 @@ class SubredditsController(val subredditService: SubredditService){
         return ResponseEntity(result, HttpStatus.OK)
     }
 }
+
+@RestController
+@RequestMapping("/api/posts")
+class PostController(val postService: PostService){
+
+    @PostMapping
+    fun createPost(@RequestBody postRequest: PostRequest): ResponseEntity<PostResponse>{
+        val result = postService.createPost(postRequest)
+        return ResponseEntity(result, HttpStatus.CREATED)
+    }
+
+    @GetMapping
+    fun getAllPosts(): ResponseEntity<List<PostResponse>> {
+        val result = postService.getAllPosts()
+        return ResponseEntity(result, HttpStatus.OK)
+    }
+
+    @GetMapping("/by-subreddit/{subredditId}")
+    fun getAllPostsBySubreddit(@PathVariable subredditId: Long): ResponseEntity<List<PostResponse>> {
+        val result = postService.getAllPostsBySubreddit(subredditId)
+        return ResponseEntity(result, HttpStatus.OK)
+    }
+}

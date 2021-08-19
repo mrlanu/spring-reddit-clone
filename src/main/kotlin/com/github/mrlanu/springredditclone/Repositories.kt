@@ -2,9 +2,13 @@ package com.github.mrlanu.springredditclone
 
 import org.springframework.data.jpa.repository.JpaRepository
 
-interface PostRepository : JpaRepository<Post, Long>
+interface PostRepository : JpaRepository<Post, Long> {
+    fun getAllBySubreddit(subreddit: Subreddit): List<Post>?
+}
 
-interface SubredditRepository : JpaRepository<Subreddit, Long>
+interface SubredditRepository : JpaRepository<Subreddit, Long>{
+    fun findByName(name: String): Subreddit?
+}
 
 interface UserRepository : JpaRepository<User, Long>{
     fun findByEmail(email: String): User?
