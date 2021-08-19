@@ -18,3 +18,9 @@ class ErrorResponse(
     val message: String
 )
 
+class UserResponseDTO(
+    val userId: String,
+    val username: String,
+    val email: String
+)
+

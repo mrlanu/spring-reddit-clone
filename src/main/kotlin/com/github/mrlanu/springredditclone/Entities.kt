@@ -14,7 +14,7 @@ class User(
     var enabled: Boolean,
     @ManyToMany(fetch = FetchType.EAGER)
     var roles: MutableList<Role> = mutableListOf(),
-    val publicId: String? = UUID.randomUUID().toString(),
+    val publicId: String = UUID.randomUUID().toString(),
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) var userId: Long? = null)
 
 

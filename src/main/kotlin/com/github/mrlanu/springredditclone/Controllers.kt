@@ -30,6 +30,20 @@ class AuthController(val userService: UserService) {
         return ResponseEntity(users, HttpStatus.OK)
     }
 
+    @GetMapping("/users/{userId}")
+    fun getUserById(@PathVariable userId: String): ResponseEntity<UserResponseDTO>{
+
+        val user: User = userService.getUserById(userId)?:
+        throw ResourceNotFoundException("User with id: $userId has not been founded")
+
+        val responseDTO = UserResponseDTO(
+            userId = user.publicId,
+            username = user.username,
+            email = user.email)
+
+        return ResponseEntity<UserResponseDTO>(responseDTO, HttpStatus.OK)
+    }
+
     @GetMapping("/auth/refresh")
     fun refreshToken(request: HttpServletRequest, response: HttpServletResponse) = userService.refreshToken(request, response)
 

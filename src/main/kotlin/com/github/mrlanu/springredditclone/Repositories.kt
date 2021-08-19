@@ -8,6 +8,7 @@ interface SubredditRepository : JpaRepository<Subreddit, Long>
 
 interface UserRepository : JpaRepository<User, Long>{
     fun findByEmail(email: String): User?
+    fun getUserByPublicId(publicId: String): User?
 }
 
 interface RoleRepository : JpaRepository<Role, Long>{

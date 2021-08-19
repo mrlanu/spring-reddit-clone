@@ -52,11 +52,8 @@ class UserService (val passwordEncoder : PasswordEncoder,
             created = LocalDateTime.now(),
             enabled = false)
 
-        var roleUser = roleRepository.findByRoleName("user")
-
-        if (roleUser == null){
-            roleUser = roleRepository.save(Role("user"))
-        }
+        val roleUser : Role = roleRepository.findByRoleName("user") ?:
+            roleRepository.save(Role("user"))
 
         user.roles.add(roleUser)
         userRepository.save(user)
@@ -105,4 +102,6 @@ class UserService (val passwordEncoder : PasswordEncoder,
         user.enabled = true
         userRepository.save(user)
     }
+
+    fun getUserById(userId: String): User? = userRepository.getUserByPublicId(userId)
 }
